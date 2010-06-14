@@ -1,14 +1,21 @@
 package volacal;
 
 public class Volacal {
-    private double version = 0.1;
+
+    public double Strike;
+    public double Price;
+    public double Volatility;
 
     public Volacal() {
 
     }
 
-    public void Version() {
-        System.out.println("Volacal version " + this.version); //Display the string.        
+    public Volacal( double Strike, double Price ) {
+
     }
- 
+
+    public double GetVolatility() {
+        return -1.0;
+    }
+
 }
