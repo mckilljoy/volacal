@@ -84,11 +84,19 @@ public class StockOption extends Derivative {
     }
 
     // Calculate options prices
-    public double CalculateCallPrice() {
-
+    private boolean ValidateParameters() {
         if( this.Strike == INVALID_STRIKE ||
             this.RiskFreeRate == INVALID_RISK_FREE_RATE ||
             this.TimeToExpiration == INVALID_TIME_TO_EXPIRATION ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public double CalculateCallPrice() {
+
+        if( !ValidateParameters() ) {
             return -1.0;
         }
 
@@ -109,9 +117,7 @@ public class StockOption extends Derivative {
 
     public double CalculatePutPrice() {
 
-        if( this.Strike == INVALID_STRIKE ||
-            this.RiskFreeRate == INVALID_RISK_FREE_RATE ||
-            this.TimeToExpiration == INVALID_TIME_TO_EXPIRATION ) {
+        if( !ValidateParameters() ) {
             return -1.0;
         }
 
@@ -134,6 +140,10 @@ public class StockOption extends Derivative {
     // Delta
     public double CalculateCallDelta() {
 
+        if( !ValidateParameters() ) {
+            return -1.0;
+        }
+
         // Calculate delta
         // delta = PHI(d1)
         double d1 = CalculateD1();
@@ -146,6 +156,10 @@ public class StockOption extends Derivative {
 
     public double CalculatePutDelta() {
 
+        if( !ValidateParameters() ) {
+            return -1.0;
+        }
+
         // Calculate delta
         // delta = PHI(d1) - 1
         double d1 = CalculateD1(); 
@@ -157,13 +171,17 @@ public class StockOption extends Derivative {
     }
 
     // Gamma
-    public double CalculateCallGamma() {
+    public double CalculateGamma() {
+
+        if( !ValidateParameters() ) {
+            return -1.0;
+        }
 
         // Calculate gamma -- note it is the same for put/call
-        // gama = PHI(d1) / (s*sig*sqrt(t))
+        // gamma = exp(-d1*d1/2) / sqrt(2*PI) / (S * sig *sqrt(t))
         double d1 = CalculateD1();
-      
-        double a = Gaussian.Phi(d1);
+
+        double a = Math.exp(-d1*d1/2.0) / Math.sqrt( 2.0 * Math.PI);
         double b = this.Underlying.SpotPrice * this.Underlying.HistoricVolatility * Math.sqrt(this.TimeToExpiration);
 
         double gamma = a / b;
@@ -172,16 +190,27 @@ public class StockOption extends Derivative {
 
     }
 
-    public double CalculatePutGamma() {
+    public double CalculateCallGamma() {
+
+        if( !ValidateParameters() ) {
+            return -1.0;
+        }
 
         // Calculate gamma -- note it is the same for put/call
-        // gama = PHI(d1) / (s*sig*sqrt(t))
-        double d1 = CalculateD1();
-      
-        double a = Gaussian.Phi(d1);
-        double b = this.Underlying.SpotPrice * this.Underlying.HistoricVolatility * Math.sqrt(this.TimeToExpiration);
+        double gamma = CalculateGamma();
 
-        double gamma = a / b;
+        return gamma;
+
+    }
+
+    public double CalculatePutGamma() {
+
+        if( !ValidateParameters() ) {
+            return -1.0;
+        }
+
+        // Calculate gamma -- note it is the same for put/call
+        double gamma = CalculateGamma();
 
         return gamma;
 
@@ -190,17 +219,30 @@ public class StockOption extends Derivative {
     // Vega
     public double CalculateVega() {
 
+        if( !ValidateParameters() ) {
+            return -1.0;
+        }
+
         // Calculate vega -- note it is the same for put/call
-        // S * PHI(d1)*sqrt(t)
+        // S * sqrt(t) * exp(-d1*d1/2) / sqrt(2*PI) / 100
         double d1 = CalculateD1();
 
-        double vega = this.Underlying.SpotPrice * Gaussian.Phi(d1) * Math.sqrt(this.TimeToExpiration);
+        //        double vega = this.Underlying.SpotPrice * Gaussian.Phi(d1) * Math.sqrt(this.TimeToExpiration);
+        //        double vega = this.Underlying.SpotPrice * Gaussian.Phi(d1) * Math.exp(-this.RiskFreeRate * this.TimeToExpiration) * Math.sqrt(this.TimeToExpiration);
+        double a = this.Underlying.SpotPrice * Math.sqrt(this.TimeToExpiration); 
+        double b = Math.exp(-d1*d1/2.0) / Math.sqrt( 2.0 * Math.PI) / 100;
+
+        double vega = a * b;
 
         return vega;
 
     }
 
     public double CalculateCallVega() {
+
+        if( !ValidateParameters() ) {
+            return -1.0;
+        }
 
         // Calculate vega
         double vega = CalculateVega();
@@ -210,6 +252,10 @@ public class StockOption extends Derivative {
     }
 
     public double CalculatePutVega() {
+
+        if( !ValidateParameters() ) {
+            return -1.0;
+        }
 
         // Calculate vega
         double vega = CalculateVega();
@@ -221,15 +267,22 @@ public class StockOption extends Derivative {
     // Theta
     public double CalculateCallTheta() {
 
+        if( !ValidateParameters() ) {
+            return -1.0;
+        }
+
         // Calculate theta
-        // -S * PHI(d1)*sig / (2*sqrt(t)) - K * r*exp(-rt)*PHI(d2)
+        // -S * (exp(-d1*d1/2)/sqrt(2*PI) * sig / (2 * sqrt(t)) - rK*PHI(d2) / 365
         double d1 = CalculateD1();
         double d2 = CalculateD2(d1);
 
-        double a = -this.Underlying.SpotPrice * Gaussian.Phi(d1) * this.Underlying.HistoricVolatility / (2.0 * Math.sqrt( this.TimeToExpiration) );
-        double b = this.Strike * this.RiskFreeRate * Math.exp(-this.RiskFreeRate * this.TimeToExpiration) * Gaussian.Phi(d2);
+        //        double a = -this.Underlying.SpotPrice * Gaussian.Phi(d1) * this.Underlying.HistoricVolatility / (2.0 * Math.sqrt( this.TimeToExpiration) );
+        //        double b = this.Strike * this.RiskFreeRate * Math.exp(-this.RiskFreeRate * this.TimeToExpiration) * Gaussian.Phi(d2);
+        double a = -this.Underlying.SpotPrice * Math.exp(-d1*d1/2.0) / Math.sqrt(2.0*Math.PI);
+        double b = this.Underlying.HistoricVolatility / (2.0 * Math.sqrt(this.TimeToExpiration));
+        double c = this.RiskFreeRate * this.Strike * Gaussian.Phi(d2);
 
-        double theta = a - b;
+        double theta = (a * b - c) / 365.0;
 
         return theta;
 
@@ -237,15 +290,20 @@ public class StockOption extends Derivative {
 
     public double CalculatePutTheta() {
 
+        if( !ValidateParameters() ) {
+            return -1.0;
+        }
+
         // Calculate theta
-        // -S * PHI(d1)*sig / (2*sqrt(t)) + K * r*exp(-rt)*PHI(-d2)
+        // -S * (exp(-d1*d1/2)/sqrt(2*PI) * sig / (2 * sqrt(t)) + rK*PHI(d2) / 365
         double d1 = CalculateD1();
         double d2 = CalculateD2(d1);
 
-        double a = -this.Underlying.SpotPrice * Gaussian.Phi(d1) * this.Underlying.HistoricVolatility / (2.0 * Math.sqrt( this.TimeToExpiration) );
-        double b = this.Strike * this.RiskFreeRate * Math.exp(-this.RiskFreeRate * this.TimeToExpiration) * Gaussian.Phi(-d2);
+        double a = -this.Underlying.SpotPrice * Math.exp(-d1*d1/2.0) / Math.sqrt(2.0*Math.PI);
+        double b = this.Underlying.HistoricVolatility / (2.0 * Math.sqrt(this.TimeToExpiration));
+        double c = this.RiskFreeRate * this.Strike * Gaussian.Phi(d2);
 
-        double theta = a + b;
+        double theta = (a * b + c) / 365.0;
 
         return theta;
 
@@ -254,12 +312,16 @@ public class StockOption extends Derivative {
     // Rho
     public double CalculateCallRho() {
 
+        if( !ValidateParameters() ) {
+            return -1.0;
+        }
+
         // Calculate rho
-        // K * t*exp(-rt)*PHI(d2)
+        // K * t*exp(-rt)*PHI(d2) / 100
         double d1 = CalculateD1();
         double d2 = CalculateD2(d1);
 
-        double rho = this.Strike * this.TimeToExpiration * Math.exp(-this.RiskFreeRate * this.TimeToExpiration) * Gaussian.Phi(d2);
+        double rho = this.Strike * this.TimeToExpiration * Math.exp(-this.RiskFreeRate * this.TimeToExpiration) * Gaussian.Phi(d2) / 100;
 
         return rho;
 
@@ -267,12 +329,16 @@ public class StockOption extends Derivative {
 
     public double CalculatePutRho() {
 
+        if( !ValidateParameters() ) {
+            return -1.0;
+        }
+
         // Calculate rho
-        // -K * t*exp(-rt)*PHI(-d2)
+        // -K * t*exp(-rt)*PHI(-d2) / 100
         double d1 = CalculateD1();
         double d2 = CalculateD2(d1);
 
-        double rho = -this.Strike * this.TimeToExpiration * Math.exp(-this.RiskFreeRate * this.TimeToExpiration) * Gaussian.Phi(-d2);
+        double rho = -this.Strike * this.TimeToExpiration * Math.exp(-this.RiskFreeRate * this.TimeToExpiration) * Gaussian.Phi(-d2) / 100;
 
         return rho;
 

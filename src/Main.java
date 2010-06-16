@@ -6,15 +6,15 @@ class Main {
 
         Volacal vol = new Volacal();
 
-        Stock stock1 = new Stock( "MSFT", 23.75, 0.35);
-        Stock stock2 = new Stock( "GE", 30.14, 0.332 );
-        Stock stock3 = new Stock( "MSFT", 26.58, 0.264 );
-        Stock stock4 = new Stock( "MSFT", 26.58, 0.264);
+        Stock stock1 = new Stock( "MSFT", 26.32, 0.25 );
+        Stock stock2 = new Stock( "AAPL", 267.25, 0.304 );
+        Stock stock3 = new Stock( "AAPL", 267.25, 0.344 );
+        Stock stock4 = new Stock( "MSFT", 26.32, 0.267 );
 
-        StockOption option1 = new StockOption( stock1, 15.0, 0.01, 0.5 );
-        StockOption option2 = new StockOption( stock2, 15.0, 0.01, 0.25 );
-        StockOption option3 = new StockOption( stock3, 25.0, 0.02, 31.0/365.0 );
-        StockOption option4 = new StockOption( stock4, 26.0, 0.02, 31.0/365.0 );
+        StockOption option1 = new StockOption( stock1, 26.0, 0.000, 2.0/365.0 );
+        StockOption option2 = new StockOption( stock2, 260.0, 0.0003, 2.0/365.0 );
+        StockOption option3 = new StockOption( stock3, 260.0, 0.0003, 30.0/365.0 );
+        StockOption option4 = new StockOption( stock4, 26.0, 0.0006, 30/365.0 );
 
         StockOption temp;
 
