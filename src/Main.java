@@ -3,9 +3,6 @@ import volacal.*;
 class Main {
     public static void main(String[] args) {
 
-
-        Volacal vol = new Volacal();
-
         Stock stock1 = new Stock( "MSFT", 26.32, 0.25 );
         Stock stock2 = new Stock( "AAPL", 267.25, 0.304 );
         Stock stock3 = new Stock( "AAPL", 267.25, 0.344 );
